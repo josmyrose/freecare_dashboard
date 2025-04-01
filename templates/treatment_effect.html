@@ -1,0 +1,244 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treatment Effect Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .chart-container {
+            height: 400px;
+            margin-bottom: 30px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    {% extends "base.html" %}  <!-- If you have a base template -->
+    {% block content %}
+    <div class="container mt-4">
+        <h2>Treatment Effect Analysis</h2>
+        <p>Analyze the impact of free care checks on health outcomes</p>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Analysis Parameters</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="analysis-form">
+                            <div class="mb-3">
+                                <label for="outcome-select" class="form-label">Health Outcome</label>
+                                <select class="form-select" id="outcome-select">
+                                    <option value="Diarrhea_Had">Diarrhea Incidence</option>
+                                    <option value="CSCOM_last_week">Health Center Visits</option>
+                                    <option value="Hospital_last_week">Hospital Visits</option>
+                                    <option value="Ill_days_total">Illness Days</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="model-select" class="form-label">Model Type</label>
+                                <select class="form-select" id="model-select">
+                                    <option value="random_forest">Random Forest</option>
+                                    <option value="decision_tree">Decision Tree</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Run Analysis</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Treatment Effect Summary</h5>
+                    </div>
+                    <div class="card-body" id="effect-summary">
+                        <p class="text-muted">Run analysis to see results</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading-indicator">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Processing analysis...</p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Treatment Effect Visualization</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" id="effect-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Feature Importance</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" id="importance-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('analysis-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            runAnalysis();
+        });
+
+        function runAnalysis() {
+            const outcome = document.getElementById('outcome-select').value;
+            const modelType = document.getElementById('model-select').value;
+
+            // Show loading indicator
+            document.getElementById('loading-indicator').style.display = 'block';
+
+            // Make API call to get treatment effect
+            fetch('/api/treatment-effect/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    outcome: outcome,
+                    model_type: modelType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateEffectSummary(data);
+                    updateEffectChart(data);
+                    return fetch('/api/treatment-effect/feature-importance', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            outcome: outcome,
+                            model_type: modelType
+                        })
+                    });
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateFeatureImportanceChart(data);
+                } else {
+                    throw new Error(data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error running analysis: ' + error.message);
+            })
+            .finally(() => {
+                document.getElementById('loading-indicator').style.display = 'none';
+            });
+        }
+
+        function updateEffectSummary(data) {
+            const summaryDiv = document.getElementById('effect-summary');
+            const effectDirection = data.ate > 0 ? 'increase' : 'decrease';
+            const effectSize = Math.abs(data.ate).toFixed(3);
+
+            summaryDiv.innerHTML = `
+                <h6>${getOutcomeName(data.outcome)}</h6>
+                <p><strong>Average Treatment Effect (ATE):</strong> ${data.ate.toFixed(3)}</p>
+                <p>The free care program resulted in a ${effectDirection} of ${effectSize} in ${getOutcomeName(data.outcome).toLowerCase()}.</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6>Treatment Group</h6>
+                                <p class="mb-0">Mean: ${data.treated_mean.toFixed(3)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6>Control Group</h6>
+                                <p class="mb-0">Mean: ${data.control_mean.toFixed(3)}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateEffectChart(data) {
+            const trace1 = {
+                x: ['Control', 'Treatment'],
+                y: [data.control_mean, data.treated_mean],
+                type: 'bar',
+                name: 'Outcome Value',
+                marker: {
+                    color: ['#FFA07A', '#90EE90']
+                }
+            };
+
+            const layout = {
+                title: `Treatment Effect on ${getOutcomeName(data.outcome)}`,
+                xaxis: { title: 'Group' },
+                yaxis: { title: 'Outcome Value' }
+            };
+
+            Plotly.newPlot('effect-chart', [trace1], layout);
+        }
+
+        function updateFeatureImportanceChart(data) {
+            const trace = {
+                x: data.importance,
+                y: data.features,
+                type: 'bar',
+                orientation: 'h'
+            };
+
+            const layout = {
+                title: 'Feature Importance',
+                xaxis: { title: 'Importance Score' },
+                yaxis: { title: 'Feature' }
+            };
+
+            Plotly.newPlot('importance-chart', [trace], layout);
+        }
+
+        function getOutcomeName(outcome) {
+            const names = {
+                'Diarrhea_Had': 'Diarrhea Incidence',
+                'CSCOM_last_week': 'Health Center Visits',
+                'Hospital_last_week': 'Hospital Visits',
+                'Ill_days_total': 'Illness Days'
+            };
+            return names[outcome] || outcome;
+        }
+    </script>
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,105 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Diarrhea Treatment Dashboard</h1>
+        <p class="lead">Interactive visualization of diarrhea treatment effectiveness in children</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                Treatment Distribution
+            </div>
+            <div class="card-body">
+                <img src="{{ url_for('static', filename='images/visual.png') }}"
+                     class="img-fluid" alt="Treatment Distribution">
+            </div>
+            <div class="card-body">
+                <div id="treatmentChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                Interpretations
+            </div>
+            <ol>
+                <li>CSCOM (Community Health Center Visits):</li>
+                <ul>
+                    <li>Group 2(Healthworker) has the highest utilization (~3.5%).</li>
+                    <li>Group 4(HW & FC) has the lowest (~2%).)e</li>
+                </ul>
+                </li>
+                <li>Hospital Visits:.</li>
+                <ul><li>Very low utilization across all groups (near 0%).</ul></li>
+                <li>Private Clinic Visits: </li>
+
+                <ul><li>Group 2(Healthworker) has a slightly higher usage (~1%).</li></ul>
+
+
+                <li>Traditional Healer Visits:</li>
+                <ul>
+                    <li>Group 1 has the highest utilization (~5%).</li>
+                    <li>Group 4 has the lowest (~2%).</li>
+                </ul>
+
+                <li>Pharmacy Visits:</li>
+                <ul>
+                    <li>Group 2 has the highest (~4%)</li>
+                    <li>Group 4 has the lowest (~1%)</li>
+                </ul>
+                <li>Parterre Pharmacy Visits:</li>
+                <ul>
+                    <li>Highest utilization overall (~7-7.5%) for Groups 1, 2, and 3.</li>
+                    <li>Group 4 has noticeably lower usage (~5%).</li>
+                </ul>
+            </ol>
+            </ol>
+            <div class="card-body">
+                <div id="genderChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                Treatment Effectiveness
+            </div>
+            <div class="card-body">
+                <div id="effectivenessChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Load charts when page is ready
+    document.addEventListener('DOMContentLoaded', function () {
+        fetch('/api/treatment_counts')
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('treatmentChart', data.data, data.layout);
+            });
+
+        fetch('/api/diarrhea_by_gender')
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('genderChart', data.data, data.layout);
+            });
+
+        fetch('/api/treatment_effectiveness')
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('effectivenessChart', data.data, data.layout);
+            });
+    });
+</script>
+{% endblock %}

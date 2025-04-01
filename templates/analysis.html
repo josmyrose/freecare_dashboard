@@ -1,0 +1,124 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">Treatment Analysis</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                Diarrhea Cases by Age Group
+            </div>
+            <div class="card-body">
+                <div id="ageChart"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                Treatment Comparison
+            </div>
+            <div class="card-body">
+                <div id="comparisonChart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                Custom Analysis
+            </div>
+            <div class="card-body">
+                <form id="analysisForm">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Select Treatment</label>
+                            <select class="form-select" id="treatmentSelect">
+                                <option value="Treatment1">Treatment 1</option>
+                                <option value="Treatment2">Treatment 2</option>
+                                <option value="Treatment3">Treatment 3</option>
+                                <option value="Treatment4">Treatment 4</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Filter by Gender</label>
+                            <select class="form-select" id="genderSelect">
+                                <option value="all">All</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Diarrhea Status</label>
+                            <select class="form-select" id="diarrheaSelect">
+                                <option value="all">All</option>
+                                <option value="yes">Had Diarrhea</option>
+                                <option value="no">No Diarrhea</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                </form>
+                <div id="customChart" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load initial charts
+        fetch('/api/diarrhea_by_age')
+            .then(response => response.json())
+            .then(data => {
+                Plotly.newPlot('ageChart', data.data, data.layout);
+            });
+
+        // Set up form submission
+        document.getElementById('analysisForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const filters = {
+                treatment: document.getElementById('treatmentSelect').value,
+                gender: document.getElementById('genderSelect').value !== 'all' ?
+                       document.getElementById('genderSelect').value : null,
+                diarrhea: document.getElementById('diarrheaSelect').value !== 'all' ?
+                         document.getElementById('diarrheaSelect').value : null
+            };
+
+            fetch('/api/filtered_data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(filters)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Process the filtered data and create a chart
+                // This is a simplified example - you'd want to create more meaningful visualizations
+                const trace = {
+                    x: Object.keys(data[0]),
+                    y: Object.values(data[0]),
+                    type: 'bar'
+                };
+
+                const layout = {
+                    title: 'Filtered Data Sample',
+                    height: 400
+                };
+
+                Plotly.newPlot('customChart', [trace], layout);
+            });
+        });
+    });
+</script>
+{% endblock %}
