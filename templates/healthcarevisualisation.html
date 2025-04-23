@@ -1,0 +1,66 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    
+        
+        <h1>Healthcare Utilization Dashboard</h1>
+
+        <div class="graph-row">
+            <div class="graph-item">
+                <div class="graph-container">
+                    <div class="graph-title">CSCOM Visits and Hospital Visits  Last Week by Treatment</div>
+                    <img src="{{ url_for('static', filename='images/csmo.png') }}" alt="CSCOM Visits" style="width:100%;">
+                </div>
+            </div>
+
+            <div class="graph-item">
+                <div class="graph-container">
+                    <div class="graph-title">Monthly Visits  by Treatment</div>
+                    <img src="{{ url_for('static', filename='images/csmo_trea.png') }}" alt="Hospital Visits" style="width:100%;">
+                </div>
+            </div>
+        </div>
+
+        <div class="graph-row">
+            <div class="graph-item">
+                <div class="graph-container">
+                    <div class="graph-title">Proportion Seeking Treatment for Diarrhea</div>
+                    <img src="{{ url_for('static', filename='images/Diarrhea.png') }}" alt="Diarrhea Treatment" style="width:100%;">
+                </div>
+            </div>
+
+            <div class="graph-item">
+                <div class="graph-container">
+                    <div class="graph-title">Monthly CSCOM Visit Rates</div>
+                    <img src="{{ url_for('static', filename='images/csmo_trea.png') }}" alt="Monthly CSCOM Visits" style="width:100%;">
+                </div>
+            </div>
+        </div>
+
+        <div class="graph-row">
+            <div class="graph-item">
+                <div class="graph-container">
+                    <div class="graph-title">Healthcare Facility Utilization</div>
+                    <img src="{{ url_for('static', filename='images/healthcare.png') }}" alt="Facility Utilization" style="width:100%;">
+                </div>
+            </div>
+
+            <div class="graph-item">
+                <div class="graph-container">
+                    <div class="graph-title">Healthcare Utilization by Stratum</div>
+                    <img src="{{ url_for('static', filename='images/stratum.png') }}" alt="Stratum Utilization" style="width:100%;">
+                </div>
+            </div>
+        </div>
+
+        <div class="graph-row">
+            <div class="graph-item">
+                <div class="graph-container">
+                    <div class="graph-title">Free Care Utilization</div>
+                    <img src="{{ url_for('static', filename='images/free_care.png') }}" alt="Free Care Utilization" style="width:100%;">
+                </div>
+            </div>
+        </div>
+    
+{% endblock %}

@@ -1,0 +1,127 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Healthcare Access Prediction Tool</h1>
+
+<h1>Healthcare Visit Prediction</h1>
+
+<div class="form-container">
+    <form id="predictionForm">
+        <div class="form-group">
+            <label for="treatment">Treatment Group:</label>
+            <select id="treatment" required>
+                <option value="1">Control</option>
+                <option value="2">FreeCare</option>
+                <option value="3">HealthWorker</option>
+                <option value="4">HW_FC</option>
+                <option value="5">Unknown</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Health Worker Visits:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="health_worker_visits" value="1">
+                <label for="health_worker_visits" style="font-weight:normal">Received health worker visits</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Free Care:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="free_care" value="1">
+                <label for="free_care" style="font-weight:normal">Received free care</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="pharmacy">Pharmacy Visit Last Week:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="pharmacy" value="1">
+                <label for="pharmacy" style="font-weight:normal">Visited pharmacy last week</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="traditional">Traditional Medicine Last Week:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="traditional" value="1">
+                <label for="traditional" style="font-weight:normal">Used traditional medicine last week</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Mosquito Net Usage:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="mosquito_net" value="1">
+                <label for="mosquito_net" style="font-weight:normal">Used mosquito net</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Correct ORT Ingredients:</label>
+            <div class="checkbox-group">
+                <input type="checkbox" id="ort_ingr" value="1">
+                <label for="ort_ingr" style="font-weight:normal">Used correct ORT ingredients</label>
+            </div>
+        </div>
+
+        <button type="submit">Predict Healthcare Visit</button>
+    </form>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    document.getElementById('predictionForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        // Collect form data
+        const formData = {
+            Treatment_encoded: parseInt(document.getElementById('treatment').value),
+            health_worker_visits_check_: document.getElementById('health_worker_visits').checked ? 1.0 : 0.0,
+            free_care_check_: document.getElementById('free_care').checked ? 1.0 : 0.0,
+            Pharmacy_last_week: document.getElementById('pharmacy').checked ? 1.0 : 0.0,
+            Traditional_last_week: document.getElementById('traditional').checked ? 1.0 : 0.0,
+            Mosquito_net_used_: document.getElementById('mosquito_net').checked ? 1.0 : 0.0,
+            ORT_ingr_correct: document.getElementById('ort_ingr').checked ? 1.0 : 0.0
+        };
+
+        // Send to backend
+        fetch('/predict', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+            .then(response => response.json())
+            .then(data => {
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+
+                if (data.error) {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = `Error: ${data.error}`;
+                } else {
+                    resultDiv.className = 'success';
+                    const prediction = data.prediction;
+                    const probability = (data.probability * 100).toFixed(2);
+
+                    resultDiv.innerHTML = `
+                        <strong>Prediction Result:</strong><br>
+                        Healthcare Visit: ${prediction ? 'Likely' : 'Unlikely'}<br>
+                        Probability: ${probability}%
+                    `;
+                }
+            })
+            .catch(error => {
+                const resultDiv = document.getElementById('result');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            });
+    });
+</script>
+    {% endblock %}

@@ -3,51 +3,28 @@
 {% block content %}
 <div class="row">
     <div class="col-md-12">
-        <h1 class="mb-4">Data Explorer</h1>
-        <p>Explore the raw data with filtering capabilities</p>
-    </div>
+        <h1 class="mb-4">Data Categories</h1>
+        <p>
+
+            This dataset comprises detailed household and child health survey data collected from 1,652 observations across various treatment groups. It includes 132 variables spanning multiple dimensions such as:
+        </p>
+
+    </div><ul>
+        <li><strong>Household Characteristics</strong>: Number of household members, income indicators, education, and occupation of the female adult.</li>
+
+        <li><strong>Treatment Assignments</strong>: Participation in health interventions across four treatment arms.</li>
+
+        <li><strong>Vaccination & Health Behavior</strong>: Vaccine records (BCG, Polio, DTP, Hepatitis B, Measles, etc.), illness episodes, healthcare-seeking behavior, and access to health workers.</li>
+
+        <li><strong>Child Health Indicators</strong>: MUAC (Mid-Upper Arm Circumference), weight-for-age scores, breastfeeding duration, and nutritional status.</li>
+
+        <li><strong>Water, Sanitation & Hygiene (WASH)</strong>: Water source, aquatabs use, water treatment behavior, and mosquito net usage.</li>
+
+        <li><strong>Outcome Tracking</strong>: Weekly records of diarrhea episodes, blood/three-stool symptoms, and healthcare visits.</li>
+    </ul>
+
 </div>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="card mb-4">
-            <div class="card-header">
-                Data Table
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered" id="dataTable">
-                        <thead>
-                            <tr>
-                                <th>Treatment</th>
-                                <th>Gender</th>
-                                <th>Age (weight)</th>
-                                <th>Diarrhea</th>
-                                <th>Health Program</th>
-                                <th>Distance</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for index, row in df.iterrows() %}
-                            <tr>
-                                <td>
-                                    {% if row['Treatment1'] == 1 %}Treatment 1{% endif %}
-                                    {% if row['Treatment2'] == 1 %}Treatment 2{% endif %}
-                                    {% if row['Treatment3'] == 1 %}Treatment 3{% endif %}
-                                    {% if row['Treatment4'] == 1 %}Treatment 4{% endif %}
-                                </td>
-                                <td>{{ 'Female' if row['gender'] == 1 else 'Male' }}</td>
-                                <td>{{ row['weight'] }}</td>
-                                <td>{{ 'Yes' if row['Diarrhea_Had'] == 1 else 'No' }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

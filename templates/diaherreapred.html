@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diarrhea Prediction Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .dashboard-container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .result-card {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .probability-meter {
+            height: 25px;
+            background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);
+            border-radius: 5px;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .probability-indicator {
+            position: absolute;
+            top: -20px;
+            width: 2px;
+            height: 25px;
+            background-color: black;
+        }
+
+        .feature-impact {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    {% extends "base.html" %} <!-- If you have a base template -->
+    {% block content %}
+    <div class="dashboard-container">
+        <h2 class="text-center mb-4">Diarrhea Risk Prediction</h2>
+
+        <div class="card">
+            <div class="card-body">
+                <form id="predictionForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="healthcare_visit">Had any healthcare visit recently?</label>
+                                <select class="form-control" id="healthcare_visit" required>
+                                    <option value="">Select</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="treatment">Select Treatment Group</label>
+                                <select class="form-control" id="treatment" required>
+                                    <option value="">Select</option>
+                                    <option value="1">Control</option>
+                                    <option value="2">FreeCare</option>
+                                    <option value="3">HealthWorker</option>
+                                    <option value="4">HW_FC</option>
+                                    <option value="5">Unknown</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="diarrhea_last_week">Had diarrhea last week?</label>
+                                <select class="form-control" id="diarrhea_last_week" required>
+                                    <option value="">Select</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="three_stool">Three or more loose stools last week?</label>
+                                <select class="form-control" id="three_stool" required>
+                                    <option value="">Select</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-primary">Predict Risk</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card result-card" id="resultCard">
+            <div class="card-body">
+                <h4 class="card-title">Prediction Result</h4>
+                <p id="predictionText" class="lead"></p>
+
+                <div class="probability-meter">
+                    <div class="probability-indicator" id="probabilityIndicator"></div>
+                </div>
+                <p class="text-center mt-2">Probability: <span id="probabilityValue">0</span>%</p>
+
+                <div class="feature-impact mt-4">
+                    <h5>How each factor affects the risk:</h5>
+                    <ul class="list-group">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Healthcare Visit
+                            <span id="impact1" class="badge bg-primary rounded-pill">+0%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Treatment Received
+                            <span id="impact2" class="badge bg-primary rounded-pill">+0%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Diarrhea Last Week
+                            <span id="impact3" class="badge bg-primary rounded-pill">+0%</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Three+ Loose Stools
+                            <span id="impact4" class="badge bg-primary rounded-pill">+0%</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            // Show loading state
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Predicting...';
+            // Get form values
+            const formData = {
+                any_healthcare_visit: document.getElementById('healthcare_visit').value,
+                Treatment_encoded: document.getElementById('treatment').value,
+                Diarrhea_last_week_: document.getElementById('diarrhea_last_week').value,
+                Three_Stool_last_week: document.getElementById('three_stool').value
+            };
+
+            // Send to Flask backend
+            fetch('/predict_diarrhea', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+
+                // Display results
+                const resultCard = document.getElementById('resultCard');
+                const predictionText = document.getElementById('predictionText');
+                const probabilityValue = document.getElementById('probabilityValue');
+                const probabilityIndicator = document.getElementById('probabilityIndicator');
+
+                const probability = Math.round(data.probability * 100);
+
+                if (data.prediction === 1) {
+                    predictionText.textContent = 'High risk of diarrhea';
+                    predictionText.className = 'lead text-danger';
+                } else {
+                    predictionText.textContent = 'Low risk of diarrhea';
+                    predictionText.className = 'lead text-success';
+                }
+
+                probabilityValue.textContent = probability;
+                probabilityIndicator.style.left = `${probability}%`;
+
+                // Show impact (simplified example - adjust based on your model)
+                document.getElementById('impact1').textContent =
+                    formData.any_healthcare_visit === '1' ? '+15%' : '+5%';
+                document.getElementById('impact2').textContent =
+                    formData.Treatment_encoded === '1' ? '-20%' : '+10%';
+                document.getElementById('impact3').textContent =
+                    formData.Diarrhea_last_week_ === '1' ? '+25%' : '+5%';
+                document.getElementById('impact4').textContent =
+                    formData.Three_Stool_last_week === '1' ? '+30%' : '+5%';
+
+                resultCard.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred during prediction.');
+            });
+        });
+    </script>
+</body>
+</html>
