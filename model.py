@@ -7,5 +7,5 @@ def load_model():
         return None
     else:
         # Running locally — load the real model
-        return joblib.load('models/policy_model2.joblib')
+        return joblib.load('policy_model2.joblib')
 

@@ -5,7 +5,7 @@ import plotly.express as px
 from dash import dcc, html, Input, Output
 
 # Load data
-df = pd.read_csv('data/output.csv')
+df = pd.read_csv('output.csv')
 
 def create_dashboard(flask_app):
     dash_app = dash.Dash(

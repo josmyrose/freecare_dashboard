@@ -10,11 +10,11 @@ import dashboard
 app = Flask(__name__)
 
 # Load the dataset
-df = pd.read_csv('data/output.csv')
+df = pd.read_csv('output.csv')
 
 # Load the diarrhea prediction model
 try:
-    diarrhea_model = pickle.load(open('models/model.pkl', 'rb'))
+    diarrhea_model = pickle.load(open('model.pkl', 'rb'))
     print("Diarrhea model loaded successfully")
 except Exception as e:
     print(f"Error loading diarrhea model: {str(e)}")
