@@ -2,10 +2,10 @@ import os
 import joblib
 
 def load_model():
-    if os.environ.get("GITHUB_ACTIONS") == "true":
-        # Running in GitHub Actions — return a dummy model
-        return None
+    model_path = 'policy_model2.joblib'
+    if os.path.exists(model_path):
+        return joblib.load(model_path)
     else:
-        # Running locally — load the real model
-        return joblib.load('policy_model2.joblib')
+        print("Model file not found, using dummy model")
+        return None  # or return a dummy model
 
