@@ -1,0 +1,34 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Diarrhea Prediction Form</h2>
+    <form action="/predict_diarrhea" method="POST" class="shadow p-4 rounded bg-white">
+        <div class="form-group">
+            <label for="any_healthcare_visit">Any Healthcare Visit (0 = No, 1 = Yes):</label>
+            <input type="number" class="form-control" id="any_healthcare_visit" name="any_healthcare_visit" required>
+        </div>
+        <div class="form-group">
+            <label for="Treatment_encoded">Treatment Encoded (e.g., 0, 1, 2):</label>
+            <input type="number" class="form-control" id="Treatment_encoded" name="Treatment_encoded" required>
+        </div>
+        <div class="form-group">
+            <label for="Diarrhea_last_week_">Diarrhea Last Week (0 = No, 1 = Yes):</label>
+            <input type="number" class="form-control" id="Diarrhea_last_week_" name="Diarrhea_last_week_" required>
+        </div>
+        <div class="form-group">
+            <label for="Three_Stool_last_week">Three or More Stools Last Week (0 = No, 1 = Yes):</label>
+            <input type="number" class="form-control" id="Three_Stool_last_week" name="Three_Stool_last_week" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Predict</button>
+    </form>
+
+    {% if prediction_text %}
+    <div class="alert alert-info mt-4 text-center">
+        <h4>{{ prediction_text }}</h4>
+       <!---- <p>Probability of having diarrhea: <strong>{{ probability }}</strong></p>
+    --> 
+           </div>
+    {% endif %}
+</div>
+ {% endblock %}
